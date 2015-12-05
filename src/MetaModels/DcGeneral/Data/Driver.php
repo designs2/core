@@ -1,11 +1,14 @@
 <?php
+
 /**
- * The MetaModels extension allows the creation of multiple collections of custom items,
- * each with its own unique set of selectable attributes, with attribute extendability.
- * The Front-End modules allow you to build powerful listing and filtering of the
- * data in each collection.
+ * This file is part of MetaModels/core.
  *
- * PHP version 5
+ * (c) 2012-2015 The MetaModels team.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * This project is provided in good faith and hope to be usable by anyone.
  *
  * @package    MetaModels
  * @subpackage Core
@@ -13,8 +16,9 @@
  * @author     Christopher Bölter <c.boelter@cogizz.de>
  * @author     Stefan Heimes <stefan_heimes@hotmail.com>
  * @author     David Molineus <david.molineus@netzmacht.de>
- * @copyright  The MetaModels team.
- * @license    LGPL.
+ * @author     Monique Hahnefeld <info@designs2.de>
+ * @copyright  2012-2015 The MetaModels team.
+ * @license    https://github.com/MetaModels/core/blob/master/LICENSE LGPL-3.0
  * @filesource
  */
 
@@ -31,6 +35,9 @@ use ContaoCommunityAlliance\DcGeneral\Data\DefaultLanguageInformationCollection;
 use ContaoCommunityAlliance\DcGeneral\Data\FilterOptionCollectionInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\ModelInterface;
 use ContaoCommunityAlliance\DcGeneral\Data\MultiLanguageDataProviderInterface;
+use MetaModels\Attribute\IAttribute;
+use MetaModels\Attribute\IComplex;
+use MetaModels\Attribute\ITranslated;
 use MetaModels\Filter\IFilter;
 use MetaModels\IItem;
 use MetaModels\IItems;
@@ -40,10 +47,6 @@ use MetaModels\Item;
 
 /**
  * Data driver class for DC_General.
- *
- * @author     Christian Schiffler <c.schiffler@cyberspectrum.de>
- * @package    MetaModels
- * @subpackage Core
  */
 class Driver implements MultiLanguageDataProviderInterface
 {
@@ -74,6 +77,8 @@ class Driver implements MultiLanguageDataProviderInterface
      * @var string
      */
     protected $strCurrentLanguage;
+
+    protected $strLangCodeDelimiter = '-';
 
     /**
      * Delete an item.
@@ -537,10 +542,30 @@ class Driver implements MultiLanguageDataProviderInterface
      * @param string $strField The field to reset.
      *
      * @return void
+     *
+     * @throws \RuntimeException For invalid ids.
      */
     public function resetFallback($strField)
     {
-        // TODO: Unimplemented so far.
+        $metaModel = $this->getMetaModel();
+        $attribute = $metaModel->getAttribute($strField);
+        $ids       = $metaModel->getIdsFromFilter(null);
+
+        if ($attribute instanceof IComplex) {
+            $attribute->unsetDataFor($ids);
+        }
+        if ($attribute instanceof ITranslated) {
+            $attribute->unsetValueFor($ids, $this->getCurrentLanguage());
+        }
+        if ($attribute instanceof IAttribute) {
+            $data = array();
+            foreach ($ids as $id) {
+                $data[$id] = null;
+            }
+            $attribute->setDataFor($data);
+        }
+
+        throw new \RuntimeException('Unknown attribute or type ' . $strField);
     }
 
     /**
@@ -666,8 +691,8 @@ class Driver implements MultiLanguageDataProviderInterface
         $collection = new DefaultLanguageInformationCollection();
 
         foreach ($this->getMetaModel()->getAvailableLanguages() as $langCode) {
-            // TODO: support country code.
-            $collection->add(new DefaultLanguageInformation($langCode, null));
+            list($langCode, $country) = explode($this->strLangCodeDelimiter, $langCode, 2);
+            $collection->add(new DefaultLanguageInformation($langCode, $country ?: null));
         }
 
         if (count($collection) > 0) {
@@ -686,13 +711,18 @@ class Driver implements MultiLanguageDataProviderInterface
     {
         if ($this->getMetaModel()->isTranslated()) {
             $langCode = $this->getMetaModel()->getFallbackLanguage();
-            // TODO: support country code.
-            return new DefaultLanguageInformation($langCode, null);
+
+            list($langCode, $country) = explode('_', $langCode, 2);
+            return new DefaultLanguageInformation($langCode, $country ?: null);
         }
 
         return null;
     }
 
+    public function setLangCodeDelimiter($strDelimiter)
+    {
+        $this->strLangCodeDelimiter = $strDelimiter;
+    }
     /**
      * Set the current working language for the whole data provider.
      *
