@@ -27,27 +27,25 @@
     "issues": "https://github.com/MetaModels/core/issues",
     "wiki": "http://de.contaowiki.org/MetaModels",
     "irc": "irc://irc.freenode.org/contao.mm",
-    "source": "https://github.com/MetaModels/core"
+       "source": "https://github.com/designs2/core"
   },
   "require": {
     "php": ">=5.3",
-    "contao/core": ">=3.2,<3.6",
+    "contao/core": ">=3.2,<3.7",
     "contao-community-alliance/composer-plugin": "~2.0",
-    "contao-community-alliance/dc-general": "~2.0",
+    "designs2/dc-general": "*",
     "menatwork/contao-multicolumnwizard": "~3.3",
-    "contao-community-alliance/meta-palettes": "~1.7",
-    "discordier/justtextwidgets": "~0.5",
-    "contao-community-alliance/url-builder": "~1.1",
-    "contao-community-alliance/dependency-container": "~1.6",
-    "contao-community-alliance/event-dispatcher": "~1.3",
-    "contao-community-alliance/events-contao-bindings": "~3.2",
+    "designs2/meta-palettes": "*",
+    "discordier/justtextwidgets": "*",
+    "contao-community-alliance/url-builder": "*",
+    "designs2/dependency-container": "*",
     "doctrine/cache": "~1.3"
   },
   "require-dev": {
-    "cyberspectrum/contao-toolbox": "~0.6",
-    "phpcq/all-tasks": "~1.1",
-    "metamodels/base-unit-tests": "~1.0",
-    "metamodels/phpunit-contao-database": "~1.0"
+    "cyberspectrum/contao-toolbox": "*",
+    "phpcq/all-tasks": "*",
+    "metamodels/base-unit-tests": "*",
+    "metamodels/phpunit-contao-database": "*"
   },
   "conflict": {
     "contao/core": "3.4.0"
